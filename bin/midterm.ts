@@ -1,21 +1,20 @@
-#!/usr/bin/env node
 import 'source-map-support/register';
 import * as cdk from 'aws-cdk-lib';
-import { MidtermStack } from '../lib/midterm-stack';
+import { StorageStack } from '../lib/storage-stack';
+import { ReplicatorStack } from '../lib/replicator-stack';
+import { CleanerStack } from '../lib/cleaner-stack';
+
 
 const app = new cdk.App();
-new MidtermStack(app, 'MidtermStack', {
-  /* If you don't specify 'env', this stack will be environment-agnostic.
-   * Account/Region-dependent features and context lookups will not work,
-   * but a single synthesized template can be deployed anywhere. */
-
-  /* Uncomment the next line to specialize this stack for the AWS Account
-   * and Region that are implied by the current CLI configuration. */
-  // env: { account: process.env.CDK_DEFAULT_ACCOUNT, region: process.env.CDK_DEFAULT_REGION },
-
-  /* Uncomment the next line if you know exactly what Account and Region you
-   * want to deploy the stack to. */
-  // env: { account: '123456789012', region: 'us-east-1' },
-
-  /* For more information, see https://docs.aws.amazon.com/cdk/latest/guide/environments.html */
+const storageStack = new StorageStack(app, 'StorageStack', {});
+new ReplicatorStack(app, 'ReplicatorStack', {
+  srcBucket: storageStack.bucketSrc,
+  dstBucket: storageStack.bucketDst,
+  table: storageStack.tableT,
+});
+new CleanerStack(app, 'CleanerStack', {
+  dstBucketName: storageStack.bucketDst.bucketName,
+  tableName: storageStack.tableT.tableName,
+  dstBucketArn: storageStack.bucketDst.bucketArn,
+  tableArn: storageStack.tableT.tableArn
 });
